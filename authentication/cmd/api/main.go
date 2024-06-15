@@ -31,6 +31,7 @@ func main() {
 	// create http server
 	router := gin.Default()
 
+	// configure routes
 	app.routes(router)
 
 	// start the server
