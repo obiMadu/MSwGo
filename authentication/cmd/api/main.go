@@ -5,13 +5,14 @@ import (
 	"os"
 	"time"
 
+	"authentication/env"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-const webPort string = ":80"
+const webPort string = ":8082"
 
 var counts int
 
@@ -20,7 +21,8 @@ type Config struct{}
 func main() {
 	app := Config{}
 
-	// define http server
+	// load environment variables
+	env.LoadConfig()
 
 	// connect to the db
 	db := connectToDB()
