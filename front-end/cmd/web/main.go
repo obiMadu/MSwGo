@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -11,6 +12,8 @@ import (
 
 const webPort string = ":80"
 
+//go:embed templates
+var templatesFS embed.FS
 
 func main() {
 
@@ -28,19 +31,19 @@ func main() {
 
 	// routes
 	mux.GET("/", func(c *gin.Context) {
-		render(c, "test.page.gohtml")
+		render(c, "test.page.gohtml", &templatesFS)
 	})
 
 	fmt.Println("Starting front end service on port 8080")
 	mux.Run(webPort)
 }
 
-func render(c *gin.Context, t string) {
+func render(c *gin.Context, t string, templatesFS *embed.FS) {
 
 	partials := []string{
-		"./cmd/web/templates/base.layout.gohtml",
-		"./cmd/web/templates/header.partial.gohtml",
-		"./cmd/web/templates/footer.partial.gohtml",
+		"templates/base.layout.gohtml",
+		"templates/header.partial.gohtml",
+		"templates/footer.partial.gohtml",
 	}
 
 	var templateSlice []string
@@ -48,7 +51,8 @@ func render(c *gin.Context, t string) {
 
 	templateSlice = append(templateSlice, partials...)
 
-	tmpl, err := template.ParseFiles(templateSlice...)
+	// Parse the templates from the embedded filesystem
+	tmpl, err := template.ParseFS(templatesFS, templateSlice...)
 	if err != nil {
 		c.String(http.StatusInternalServerError, err.Error())
 		return
