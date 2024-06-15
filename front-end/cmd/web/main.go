@@ -3,23 +3,39 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
+const webPort string = ":80"
+
+
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		render(w, "test.page.gohtml")
+
+	mux := gin.Default()
+
+	// setup cross-origin resourse sharing middleware
+	mux.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposeHeaders:    []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
+
+	// routes
+	mux.GET("/", func(c *gin.Context) {
+		render(c, "test.page.gohtml")
 	})
 
 	fmt.Println("Starting front end service on port 8080")
-	err := http.ListenAndServe(":8080", nil)
-	if err != nil {
-		log.Panic(err)
-	}
+	mux.Run(webPort)
 }
 
-func render(w http.ResponseWriter, t string) {
+func render(c *gin.Context, t string) {
 
 	partials := []string{
 		"./cmd/web/templates/base.layout.gohtml",
@@ -28,7 +44,7 @@ func render(w http.ResponseWriter, t string) {
 	}
 
 	var templateSlice []string
-	templateSlice = append(templateSlice, fmt.Sprintf("./cmd/web/templates/%s", t))
+	templateSlice = append(templateSlice, fmt.Sprintf("templates/%s", t))
 
 	for _, x := range partials {
 		templateSlice = append(templateSlice, x)
@@ -36,11 +52,11 @@ func render(w http.ResponseWriter, t string) {
 
 	tmpl, err := template.ParseFiles(templateSlice...)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if err := tmpl.Execute(w, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if err := tmpl.Execute(c.Writer, nil); err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
 	}
 }
