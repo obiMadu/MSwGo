@@ -3,8 +3,8 @@ version: '3'
 services:
   broker:
     build:
-      context: ./../broker
-      dockerfile: ./../broker/broker.Dockerfile
+      context: ./broker
+      dockerfile: broker.Dockerfile
     restart: always
     ports:
       - "8081:80"
