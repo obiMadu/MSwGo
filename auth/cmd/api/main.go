@@ -1,15 +1,20 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 
 	"auth/internals/db"
 	"auth/internals/env"
+	"auth/internals/models"
 )
 
 const webPort string = ":8082"
 
-type Config struct{}
+type Config struct {
+	DB     *sql.DB
+	Models models.Models
+}
 
 func main() {
 	app := Config{}
@@ -17,10 +22,17 @@ func main() {
 	// load environment variables
 	env.LoadConfig()
 
-	// connect to the db
-	db := db.ConnectToDB()
-	if db == nil {
-		log.Panic("Can't connect to Postgress")
+	// configure the db
+	gormDB, err := db.NewDB()
+	if err != nil {
+		log.Panicf("Unable to configure DB %s\n", err.Error())
+	}
+
+	rawDB := db.RawDB(gormDB)
+
+	app = Config{
+		DB:     rawDB,
+		Models: models.New(rawDB),
 	}
 
 	// configure routes

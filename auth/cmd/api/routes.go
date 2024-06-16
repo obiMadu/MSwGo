@@ -21,7 +21,7 @@ func (app *Config) routes() *gin.Engine {
 	}))
 
 	// routes
-	r.Use(cors.Default())
+	r.POST("/authenticate", app.Authenticate)
 
 	// return router
 	return r
