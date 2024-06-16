@@ -5,7 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (app *Config) routes(r *gin.Engine) {
+func (app *Config) routes() *gin.Engine {
+
+	// create http server
+	r := gin.Default()
 
 	// setup cross-origin resourse sharing middleware
 	r.Use(cors.New(cors.Config{
@@ -18,5 +21,9 @@ func (app *Config) routes(r *gin.Engine) {
 	}))
 
 	// routes
+	r.Use(cors.Default())
+
+	// return router
+	return r
 
 }
