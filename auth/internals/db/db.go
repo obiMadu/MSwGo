@@ -1,6 +1,8 @@
 package db
 
 import (
+	"auth/internals/models"
+	"database/sql"
 	"log"
 	"os"
 	"time"
@@ -11,7 +13,52 @@ import (
 
 var counts int
 
-func OpenDB(dsn string) (*gorm.DB, error) {
+func NewDB() (*gorm.DB, error) {
+	// new db
+	db := connectToDB()
+
+	// migrate models
+	err := migrate(db)
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
+
+func migrate(db *gorm.DB) error {
+	err := db.AutoMigrate(&models.User{})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func connectToDB() *gorm.DB {
+	dsn := os.Getenv("DSN")
+
+	for {
+		connection, err := openDB(dsn)
+		if err != nil {
+			log.Println("Postgres not yet ready ...")
+			counts++
+		} else {
+			log.Println("Connected to Postgres!")
+			return connection
+		}
+
+		if counts > 10 {
+			log.Fatal(err)
+		}
+
+		log.Println("Backing off for three seconds....")
+		time.Sleep(3 * time.Second)
+		continue
+	}
+}
+
+func openDB(dsn string) (*gorm.DB, error) {
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
@@ -32,26 +79,11 @@ func OpenDB(dsn string) (*gorm.DB, error) {
 	return db, nil
 }
 
-func ConnectToDB() *gorm.DB {
-	dsn := os.Getenv("DSN")
-
-	for {
-		connection, err := OpenDB(dsn)
-		if err != nil {
-			log.Println("Postgres not yet ready ...")
-			counts++
-		} else {
-			log.Println("Connected to Postgres!")
-			return connection
-		}
-
-		if counts > 10 {
-			log.Println(err)
-			return nil
-		}
-
-		log.Println("Backing off for three seconds....")
-		time.Sleep(3 * time.Second)
-		continue
+func RawDB(db *gorm.DB) *sql.DB {
+	rawDB, err := db.DB()
+	if err != nil {
+		log.Panicf("Unable to get raw sql.DB %s\n", err.Error())
 	}
+
+	return rawDB
 }
