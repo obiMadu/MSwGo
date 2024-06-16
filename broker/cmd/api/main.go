@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const webPort string = ":80"
+const webPort string = ":8081"
 
 type Config struct{}
 

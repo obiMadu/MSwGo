@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const webPort string = ":80"
+const webPort string = ":8080"
 
 //go:embed templates
 var templatesFS embed.FS
