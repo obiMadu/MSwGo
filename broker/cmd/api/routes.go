@@ -19,4 +19,5 @@ func (app *Config) routes(r *gin.Engine) {
 
 	// routes
 	r.POST("/", app.Broker)
+	r.POST("/handle", app.HandleSubmission)
 }
