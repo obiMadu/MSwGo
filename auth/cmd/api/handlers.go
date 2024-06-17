@@ -56,5 +56,5 @@ func (app *Config) Authenticate(c *gin.Context) {
 		Data:    user,
 	}
 
-	c.JSON(http.StatusAccepted, payload)
+	c.JSON(http.StatusOK, payload)
 }
